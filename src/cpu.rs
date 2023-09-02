@@ -30,6 +30,10 @@ impl Cpu {
         memory: &mut [u8],
         stack: &mut Vec<u16>,
         screen: &mut [u32],
+        delay: &mut u8,
+        sound: &mut u8,
+        keys_pressed: &[bool; 16],
+        keys_released: &[bool; 16],
     ) -> bool {
         let i = u16::from_be_bytes([memory[self.pc as usize], memory[(self.pc as usize) + 1]]);
         let x = ((i >> 8) & 0xF) as usize;
@@ -175,7 +179,32 @@ impl Cpu {
 
                 return true;
             }
+            0xE000 => match nn {
+                0x9E => {
+                    if keys_pressed[self.v[x] as usize] {
+                        self.pc += 2;
+                    }
+                }
+                0xA1 => {
+                    if !keys_pressed[self.v[x] as usize] {
+                        self.pc += 2;
+                    }
+                }
+                _ => {}
+            },
             0xF000 => match nn {
+                0x07 => self.v[x] = *delay,
+                0x0A => {
+                    for (i, key) in keys_released.iter().enumerate() {
+                        if *key {
+                            self.v[x] = i as u8;
+                            return false;
+                        }
+                    }
+                    self.pc -= 2;
+                }
+                0x15 => *delay = self.v[x],
+                0x18 => *sound = self.v[x],
                 0x1E => self.i = self.i.wrapping_add(self.v[x] as u16),
                 0x29 => self.i = (self.v[x] & 0xF) as u16 * 5 + 0x50,
                 0x33 => {
