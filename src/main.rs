@@ -31,7 +31,7 @@ const FONT: &[u8] = &[
 fn main() -> anyhow::Result<()> {
     let mut pixels = [0_u32; WIDTH * HEIGHT];
     let mut memory = [0_u8; 4096];
-    let mut cpu = Cpu::default();
+    let mut cpu = Cpu::new(false);
     let mut stack: Vec<u16> = Vec::new();
     let mut delay: u8 = 0;
     let mut sound: u8 = 0;

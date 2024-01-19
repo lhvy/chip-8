@@ -9,10 +9,12 @@ pub(crate) struct Cpu {
     v: [u8; 16],
     /// State for the Xorshift random number generator
     rand_state: u64,
+    /// Whether the CPU is in COSMIC VIP mode (a number of opcodes are slightly different)
+    cosmic: bool,
 }
 
-impl Default for Cpu {
-    fn default() -> Self {
+impl Cpu {
+    pub(crate) fn new(cosmic: bool) -> Self {
         let mut buf = [0; std::mem::size_of::<u64>()];
         getrandom::getrandom(&mut buf).expect("Initial random number generation failed");
         Self {
@@ -20,7 +22,14 @@ impl Default for Cpu {
             i: 0,
             v: [0; 16],
             rand_state: u64::from_ne_bytes(buf),
+            cosmic,
         }
+    }
+}
+
+impl Default for Cpu {
+    fn default() -> Self {
+        Self::new(false)
     }
 }
 
