@@ -42,7 +42,7 @@ fn main() -> anyhow::Result<()> {
     sink.pause();
     sink.append(wave);
 
-    let mut f = File::open("roms/Space Invaders [David Winter].ch8")?;
+    let mut f = File::open("roms/test_opcode.ch8")?;
     f.read(&mut memory[512..])?;
 
     memory[0x50..=0x9F].copy_from_slice(FONT);

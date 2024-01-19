@@ -126,13 +126,16 @@ impl Cpu {
                 }
                 // Shift
                 0x6 => {
-                    // TODO: Feature flag for these lines
-                    // self.v[x] = self.v[y];
+                    if self.cosmic {
+                        self.v[x] = self.v[y];
+                    }
                     self.v[0xF] = self.v[x] & 1;
                     self.v[x] >>= 1;
                 }
                 0xE => {
-                    // self.v[x] = self.v[y];
+                    if self.cosmic {
+                        self.v[x] = self.v[y];
+                    }
                     self.v[0xF] = self.v[x] >> 7 & 1;
                     self.v[x] <<= 1;
                 }
@@ -150,7 +153,11 @@ impl Cpu {
             }
             // BNNN
             0xB000 => {
-                self.pc = nnn + self.v[0] as u16;
+                self.pc = if self.cosmic {
+                    nnn + self.v[0] as u16
+                } else {
+                    nnn + self.v[x] as u16
+                };
             }
             // CXNN
             0xC000 => {
@@ -223,14 +230,18 @@ impl Cpu {
                 }
                 0x55 => {
                     for r in 0..=x {
-                        // TODO: Flag for behaviour with incrementing self.i
                         memory[self.i as usize + r] = self.v[r];
+                    }
+                    if self.cosmic {
+                        self.i += x as u16 + 1;
                     }
                 }
                 0x65 => {
                     for r in 0..=x {
-                        // TODO: Flag for behaviour with incrementing self.i
                         self.v[r] = memory[self.i as usize + r];
+                    }
+                    if self.cosmic {
+                        self.i += x as u16 + 1;
                     }
                 }
                 _ => {}
