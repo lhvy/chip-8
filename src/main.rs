@@ -3,6 +3,7 @@ use minifb::{Key, Window, WindowOptions};
 use rodio::Sink;
 use std::fs::File;
 use std::io::Read;
+use std::{env, process};
 
 mod cpu;
 
@@ -29,9 +30,25 @@ const FONT: &[u8] = &[
 ];
 
 fn main() -> anyhow::Result<()> {
+    let mut cosmic = false;
+    let args: Vec<_> = env::args().skip(1).collect();
+    let mut args_i = args.iter();
+
+    while let Some(arg) = args_i.next() {
+        match arg.as_str() {
+            "--cosmic" | "-C" => {
+                cosmic = true;
+            }
+            &_ => {
+                eprintln!("Error: Invalid argument {}", arg.as_str());
+                process::exit(0);
+            }
+        }
+    }
+
     let mut pixels = [0_u32; WIDTH * HEIGHT];
     let mut memory = [0_u8; 4096];
-    let mut cpu = Cpu::new(false);
+    let mut cpu = Cpu::new(cosmic);
     let mut stack: Vec<u16> = Vec::new();
     let mut delay: u8 = 0;
     let mut sound: u8 = 0;
@@ -41,6 +58,9 @@ fn main() -> anyhow::Result<()> {
     let sink = Sink::try_new(&stream_handle)?;
     sink.pause();
     sink.append(wave);
+
+    let args: Vec<_> = env::args().skip(1).collect();
+    let mut args_i = args.iter();
 
     let mut f = File::open("roms/test_opcode.ch8")?;
     f.read(&mut memory[512..])?;
