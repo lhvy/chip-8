@@ -1,5 +1,6 @@
 use cpu::Cpu;
 use minifb::{Key, Window, WindowOptions};
+use rodio::Sink;
 use std::fs::File;
 use std::io::Read;
 
@@ -35,7 +36,13 @@ fn main() -> anyhow::Result<()> {
     let mut delay: u8 = 0;
     let mut sound: u8 = 0;
 
-    let mut f = File::open("roms/bc_test.ch8")?;
+    let (_stream, stream_handle) = rodio::OutputStream::try_default()?;
+    let wave = rodio::source::SineWave::new(440.0);
+    let sink = Sink::try_new(&stream_handle)?;
+    sink.pause();
+    sink.append(wave);
+
+    let mut f = File::open("roms/Space Invaders [David Winter].ch8")?;
     f.read(&mut memory[512..])?;
 
     memory[0x50..=0x9F].copy_from_slice(FONT);
@@ -99,11 +106,11 @@ fn main() -> anyhow::Result<()> {
         keys_released[0xB] = window.is_key_released(Key::C);
         keys_released[0xF] = window.is_key_released(Key::V);
 
-        // if sound > 0 {
-        //     beep(440)?;
-        // } else {
-        //     beep(0)?;
-        // }
+        if sound > 0 && sink.is_paused() {
+            sink.play();
+        } else if sound == 0 && !sink.is_paused() {
+            sink.pause();
+        }
 
         let mut should_update = false;
         for _ in 0..700 / 60 {

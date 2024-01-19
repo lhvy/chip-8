@@ -6,6 +6,6 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.75"
-cpal = "0.15.2"
 getrandom = "0.2.10"
 minifb = "0.25"
+rodio = "0.17.3"
